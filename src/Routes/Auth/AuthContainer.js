@@ -12,22 +12,14 @@ export default () => {
     const lastName = useInput('');
     const email = useInput('');
     
-    const requestSecret = useMutation(LOG_IN, {
-        update : (_, { data }) => {
-            const { requestSecret } = data;
-
-            if(!requestSecret) {
-                toast.error('You dont have an account yet, create one');
-                setTimeout(() => setAction('signUp'), 3000);
-            }
-        },
+    const requestSecretMutation = useMutation(LOG_IN, {
         variables : {
             // useInput은 value와 onChange를 주기 때문에 값을 가져오려면 .value를 해줘야 한다.
             email : email.value
         } 
     });
 
-    const createAccount = useMutation(CREATE_ACCOUNT, {
+    const createAccountMutation = useMutation(CREATE_ACCOUNT, {
         variables : {
             email : email.value,
             username : username.value,
@@ -36,18 +28,40 @@ export default () => {
         }
     });
 
-    const onSubmit = e => {
+    const onSubmit = async (e) => {
         e.preventDefault();
 
         if(action === 'logIn') {
             if(email.value !== '') {
-                requestSecret();
+                try {
+                    const { requestSecret } = await requestSecretMutation();
+                    
+                    if(!requestSecret) {
+                        toast.error('You dont have an account yet, create one');
+                        setTimeout(() => setAction('signUp'), 3000);
+                    }
+                } catch(err) {
+                    console.log('AuthContainer.js onSubmit requestSecret error : ', err);
+                    toast.error(`Can't request secret, try again`);
+                }
             } else {
                 toast.error('Email is required');
             }
         } else if(action === 'signUp') {
             if(email.value !== '' && username.value !== '' && firstName.value !== '' && lastName.value !== '') {
-                createAccount();
+                try {
+                    const { createAccount } = await createAccountMutation();
+
+                    if(!createAccount) {
+                        toast.error(`Can't create account`);
+                    } else {
+                        toast.success('Account created! Log In now');
+                        setTimeout(() => setAction('logIn'), 3000);
+                    }
+                } catch(err) {
+                    console.log('AuthContainer.js onSubmit createAccount error : ', err);
+                    toast.error(e.message);
+                }
             } else {
                 toast.error('All field are required');
             }
