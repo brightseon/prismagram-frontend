@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import AuthPresenter from './AuthPresenter';
 import useInput from '../../Hooks/useInput';
 import { useMutation } from 'react-apollo-hooks';
-import { LOG_IN, CREATE_ACCOUNT } from './AuthQueries';
+import { LOG_IN, CREATE_ACCOUNT, CONFIRM_SECRET, LOCAL_LOG_IN } from './AuthQueries';
 import { toast } from 'react-toastify';
 
 export default () => {
@@ -29,6 +29,15 @@ export default () => {
         }
     });
 
+    const confirmSecretMutation = useMutation(CONFIRM_SECRET, {
+        variables : {
+            email : email.value,
+            secret : secret.value
+        }
+    });
+
+    const localLogInMutation = useMutation(LOCAL_LOG_IN);
+
     const onSubmit = async (e) => {
         e.preventDefault();
 
@@ -39,13 +48,16 @@ export default () => {
                     
                     if(!requestSecret) {
                         toast.error('You dont have an account yet, create one');
+                        
                         setTimeout(() => setAction('signUp'), 3000);
                     } else {
                         toast.success('Check your inbox for your login secret');
+                        
                         setAction('confirm');
                     }
                 } catch(err) {
                     console.log('AuthContainer.js onSubmit requestSecret error : ', err);
+                    
                     toast.error(`Can't request secret, try again`);
                 }
             } else {
@@ -60,14 +72,33 @@ export default () => {
                         toast.error(`Can't create account`);
                     } else {
                         toast.success('Account created! Log In now');
+                        
                         setTimeout(() => setAction('logIn'), 3000);
                     }
                 } catch(err) {
                     console.log('AuthContainer.js onSubmit createAccount error : ', err);
+                    
                     toast.error(e.message);
                 }
             } else {
                 toast.error('All field are required');
+            }
+        } else if(action === 'confirm') {
+            if(secret.value !== '') {
+                try {
+                    const { data : { confirmSecret : token } } = await confirmSecretMutation();
+                    
+                    if(token !== '' && token !== undefined) {
+                        // token은 confirmSecretMutation이 실행되고 나서야 생기기 때문에 이 시점에서 variables를 넣어준다.
+                        localLogInMutation({ variables : { token } });
+                    } else {
+                        throw Error();
+                    }
+                } catch(err) {
+                    console.log('onSubmit confrimSecretMutation error : ', err);
+
+                    toast.error('Cant confirm secret, check again');
+                }
             }
         }
     };
