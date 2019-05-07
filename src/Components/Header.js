@@ -73,8 +73,8 @@ const ME = gql`
 // withRouter를 사용하면 router가 할 수 있는 모든 것들에 access를 준다.
 export default withRouter(({ history }) => {
     const search = useInput('');
-    const meQuery = useQuery(ME);
-    console.log(meQuery);
+    const { data } = useQuery(ME);
+    console.log(data.me);
 
     const onSearchSubmit = e => {
         e.preventDefault();
@@ -102,9 +102,17 @@ export default withRouter(({ history }) => {
                     <HeaderLink to="/notificatioons">
                         <HeartEmpty />
                     </HeaderLink>
-                    <HeaderLink to="/username">
-                        <User />
-                    </HeaderLink>
+                    {
+                        !data.me ? (
+                            <HeaderLink to="/#">
+                                <User />
+                            </HeaderLink>
+                        ) : (
+                            <HeaderLink to={ data.me.username }>
+                                <User />
+                            </HeaderLink>
+                        )
+                    }
                 </HeaderColumn>
             </HeaderWrapper>
         </Header>
