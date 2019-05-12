@@ -28,7 +28,6 @@ const FEED_QUERY = gql`
                 text
                 user {
                     id
-                    avatar
                     username
                 }
             }
@@ -49,9 +48,8 @@ export default () => {
     
     return (
         <Wrapper>
-            <Helmet>
-                <title>Feed | Prismagram</title>
-            </Helmet>
+            {/* 기존에 쓰던 방식이 Maximum call stack size exceeded 에러가 발생하여 아래의 방식으로 수정함 */}
+            <Helmet title="Feed | Prismagram" />
             { loading && <Loader /> }
             { 
                 !loading && data && data.seeFeed && (
