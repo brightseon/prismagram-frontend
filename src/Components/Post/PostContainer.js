@@ -12,7 +12,7 @@ const PostContainer = ({ id, user, files, likeCount, isLiked, comments, createdA
     const [currentItem, setCurrentItem] = useState(0);
     const comment = useInput('');
     const toggleLikeMutation = useMutation(TOGGLE_LIKE, { variables : { postId : id } });
-    const addComment = useMutation(ADD_COMMENT, { variables : { postId : id, text : comment.value } });
+    const addCommentMutation = useMutation(ADD_COMMENT, { variables : { postId : id, text : comment.value } });
 
     const slide = () => {
         const totalFiles = files.length;
@@ -42,11 +42,22 @@ const PostContainer = ({ id, user, files, likeCount, isLiked, comments, createdA
         }
     };
 
+    const onKeyPress = e => {
+        const { keyCode } = e;
+
+        if(keyCode === 13) {
+            comment.setValue('');
+            // addCommentMutation();
+        }
+
+        return;
+    };
+
     return <PostPresenter user={ user } files={ files } isLiked={ isLikedS }
         likeCount={ likeCountS } comments={ comments } createdAt={ createdAt }
         newComment={ comment } setIsLiked={ setIsLiked } setLikeCount={ setLikeCount }
         location={ location } caption={ caption } currentItem={ currentItem }
-        toggleLike={ toggleLike } />;
+        toggleLike={ toggleLike } onKeyPress={ onKeyPress } />;
 };
 
 PostContainer.propTypes = {

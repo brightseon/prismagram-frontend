@@ -11,6 +11,7 @@ export default defaultValue => {
 
     return { 
         value,
-        onChange
+        onChange,
+        setValue
     };
 };
