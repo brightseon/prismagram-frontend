@@ -3,14 +3,18 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import useInput from '../../Hooks/useInput';
 import PostPresenter from './PostPresenter';
-import { useMutation } from 'react-apollo-hooks';
+import { useMutation, useQuery } from 'react-apollo-hooks';
 import { TOGGLE_LIKE, ADD_COMMENT } from './PostQueries';
+import { ME } from '../../SharedQueries';
+import { toast } from 'react-toastify';
 
 const PostContainer = ({ id, user, files, likeCount, isLiked, comments, createdAt, caption, location }) => {
     const [isLikedS, setIsLiked] = useState(isLiked);
     const [likeCountS, setLikeCount] = useState(likeCount);
     const [currentItem, setCurrentItem] = useState(0);
+    const [selfComments, setSelfComments] = useState([]);
     const comment = useInput('');
+    const { data : meQuery } = useQuery(ME);
     const toggleLikeMutation = useMutation(TOGGLE_LIKE, { variables : { postId : id } });
     const addCommentMutation = useMutation(ADD_COMMENT, { variables : { postId : id, text : comment.value } });
 
@@ -42,22 +46,30 @@ const PostContainer = ({ id, user, files, likeCount, isLiked, comments, createdA
         }
     };
 
-    const onKeyPress = e => {
-        const { keyCode } = e;
+    const onKeyPress = async e => {
+        const { which } = e;
 
-        if(keyCode === 13) {
-            comment.setValue('');
-            // addCommentMutation();
+        if(which === 13) {
+            e.preventDefault();
+            
+            try {
+                const { data : { addComment } } = await addCommentMutation();
+                
+                setSelfComments([...selfComments, addComment]);
+                comment.setValue('');
+            } catch(err) {
+                console.log('PostContainer.js onKeyPress error : ', err);
+
+                toast.error('Cant send comment');
+            }
         }
-
-        return;
     };
 
     return <PostPresenter user={ user } files={ files } isLiked={ isLikedS }
         likeCount={ likeCountS } comments={ comments } createdAt={ createdAt }
         newComment={ comment } setIsLiked={ setIsLiked } setLikeCount={ setLikeCount }
         location={ location } caption={ caption } currentItem={ currentItem }
-        toggleLike={ toggleLike } onKeyPress={ onKeyPress } />;
+        toggleLike={ toggleLike } onKeyPress={ onKeyPress } selfComments={ selfComments } />;
 };
 
 PostContainer.propTypes = {

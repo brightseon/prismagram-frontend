@@ -101,7 +101,7 @@ const Comment = styled.li`
     }
 `;
 
-export default ({ user : { username, avatar }, location, files, isLiked, likeCount, createdAt, newComment, currentItem, toggleLike, onKeyPress, comments }) => (
+export default ({ user : { username, avatar }, location, files, isLiked, likeCount, createdAt, newComment, currentItem, toggleLike, onKeyPress, comments, selfComments }) => (
     <Post>
         <Header>
             <Avatar size="sm" url={ avatar }  />
@@ -132,11 +132,19 @@ export default ({ user : { username, avatar }, location, files, isLiked, likeCou
                                 </Comment>
                             ))
                         }
+                        {
+                            selfComments.map(comment => (
+                                <Comment key={ comment.id }>
+                                    <FatText text={ comment.user.username } />
+                                    { comment.text }
+                                </Comment>
+                            ))
+                        }
                     </Comments>
                 )
             }
             <Timestamp>{ createdAt }</Timestamp>
-            <Textarea placeholder={ 'Add a comment...' } value={ newComment.value } onChange={ newComment.onChange } onKeyDown={ onKeyPress } />
+            <Textarea placeholder={ 'Add a comment...' } value={ newComment.value } onChange={ newComment.onChange } onKeyPress={ onKeyPress } />
         </Meta>
     </Post>
 );
