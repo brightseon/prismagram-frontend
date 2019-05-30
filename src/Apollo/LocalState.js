@@ -16,7 +16,7 @@ export const resolvers = {
         },
         logUserOut : (_, __, { cache }) => {
             localStorage.removeItem('token');
-            window.location.reload();
+            window.location = '/';
 
             return null;
         }
